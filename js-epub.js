@@ -111,6 +111,7 @@
                 // It will return an XML error document, and it will be in
                 // here:
                 // doc.childNodes[1].childNodes[0].nodeValue
+                throw(e)
             }
         },
 
