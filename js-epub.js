@@ -70,15 +70,16 @@
 
                 for (var i = 0, il = metadataNodes.length; i < il; i++) {
                     var node = metadataNodes[i];
-                    var key = node.nodeName.toLowerCase();
-                    if (key === "#text") { continue }
+                    // Skip text nodes (whitespace)
+                    if (node.nodeType === 3) { continue }
+
                     var attrs = {};
                     for (var i2 = 0, il2 = node.attributes.length; i2 < il2; i2++) {
                         var attr = node.attributes[i2];
                         attrs[attr.name] = attr.value;
                     }
                     attrs._text = node.textContent;
-                    opf.metadata[key] = attrs;
+                    opf.metadata[node.nodeName] = attrs;
                 }
 
                 var manifestEntries = doc
