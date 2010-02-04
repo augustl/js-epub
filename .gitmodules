@@ -1,0 +1,6 @@
+[submodule "vendor/js-unzip"]
+	path = vendor/js-unzip
+	url = git://github.com/augustl/js-unzip.git
+[submodule "vendor/js-inflate"]
+	path = vendor/js-inflate
+	url = git://github.com/augustl/js-inflate.git

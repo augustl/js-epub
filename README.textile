@@ -1,0 +1,23 @@
+h2. Work in progress
+
+Very experimental, can't actually do anything useful yet.
+
+h2. JSEpub
+
+Reads and handles the ebook format EPUB.
+
+<pre><code>var ePubFile = ...; // Use HTML5 files, or download it via XHR.
+var epub = new JSEpub(epubFile);
+</code></pre>
+
+h2. Installing and using
+
+JSEpub has the following dependencies:
+
+* "JSUnzip":http://github.com/augustl/js-unzip. EPUB files are packaged as a Zip
+  archive.
+* "JSInflate":http://github.com/augustl/js-inflate. Used to decompress the
+  compressed files in the Zip archive.
+
+Simply include these javascripts on your page.
+
