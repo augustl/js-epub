@@ -145,6 +145,8 @@
             }
         },
 
+        // Will in place modify all CSS files in this.files, replacing all http
+        // uris with data uris.
         convertHttpUrisToDataUris: function () {
             var self = this;
             for (var key in this.opf.manifest) {
