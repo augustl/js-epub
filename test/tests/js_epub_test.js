@@ -167,5 +167,39 @@ TestCase("JsEpubTest", {
             + "}"
         e.convertHttpUrisToDataUris();
         assertEquals(expected, e.files["css/book.css"]);
+    },
+
+    "test making data URIs in HTML files": function () {
+        var e = new JSEpub();
+        e.opf = {
+            manifest: {
+                "chap1": {"href": "contents/chap1.html", "media-type": "application/xhtml+xml"},
+                "imga": {"href": "contents/resources/foo.png", "media-type": "anything/really"},
+                "imgb": {"href": "contents/resources/test.jpg", "media-type": "img/jpg"}
+            }
+        };
+        e.files = {
+            "contents/chap1.html": ""
+                + '<html><body>\n'
+                + '  <p>Foodi boody.</p>\n'
+                + '  <img alt="" src="resources/test.jpg" />\n'
+                + '  <img src="resources/foo.png" />\n'
+                + '  <p>Text is so boring. More images please!</p>\n'
+                + '  <img alt="" src="data:image/png,bitsandbytes" />\n' 
+                + '</body></html>',
+            "contents/resources/foo.png": "I <am> a <img /> image that tries to break escapes%%\\",
+            "contents/resources/test.jpg": "hello"
+        };
+
+        var expected = ""
+            + '<html><body>\n'
+            + '  <p>Foodi boody.</p>\n'
+            + '  <img alt="" src="data:img/jpg,hello" />\n'
+            + '  <img src="data:anything/really,I%20%3Cam%3E%20a%20%3Cimg%20/%3E%20image%20that%20tries%20to%20break%20escapes%25%25%5C" />\n'
+            + '  <p>Text is so boring. More images please!</p>\n'
+            + '  <img alt="" src="data:image/png,bitsandbytes" />\n' 
+            + '</body></html>';
+        e.convertHttpUrisToDataUris();
+        assertEquals(expected, e.files["contents/chap1.html"]);
     }
 });

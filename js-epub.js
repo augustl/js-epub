@@ -145,17 +145,19 @@
             }
         },
 
-        // Will in place modify all CSS files in this.files, replacing all http
-        // uris with data uris.
+        // Will modify all HTML and CSS files in place, altering this.files.
+        // All references to images (resources) will be replaced with data
+        // uris.
         convertHttpUrisToDataUris: function () {
             var self = this;
             for (var key in this.opf.manifest) {
-                if (this.opf.manifest[key]["media-type"] == "text/css") {
+                var mediaType = this.opf.manifest[key]["media-type"]
+                if (mediaType === "text/css") {
                     var href = this.opf.manifest[key]["href"];
                     var file = this.files[href];
 
                     file = file.replace(/url\((.*?)\)/gi, function (str, url) {
-                        if (/url\(data/i.test(str)) {
+                        if (/^data/i.test(url)) {
                             // Don't replace data strings
                             return str;
                         } else {
@@ -163,6 +165,24 @@
                             var mediaType = self.findMediaTypeByHref(dataHref);
                             var encodedData = escape(self.files[dataHref]);
                             return "url(data:" + mediaType + "," + encodedData + ")";
+                        }
+                    });
+
+                    this.files[href] = file;
+                } else if (mediaType === "application/xhtml+xml") {
+                    var href = this.opf.manifest[key]["href"];
+                    var file = this.files[href];
+
+                    file = file.replace(/<img(.*?)src=['"](.*?)['"](.*?)\/>/gi, function (imgTag, beforeSrc, url, afterSrc) {
+                        if (/^data/i.test(url)) {
+                            // Don't replace data strings
+                            return imgTag;
+                        } else {
+                            var dataHref = self.resolvePath(url, href);
+                            var mediaType = self.findMediaTypeByHref(dataHref);
+                            var encodedData = escape(self.files[dataHref]);
+                            var src = "data:" + mediaType + "," + encodedData;
+                            return "<img" + beforeSrc + 'src="' + src + '"' + afterSrc + "/>"
                         }
                     });
 
