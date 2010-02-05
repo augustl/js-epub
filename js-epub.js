@@ -106,13 +106,66 @@
                     opf.spine.push(node.getAttribute("idref"));
                 }
 
-                return opf;
+                this.opf = opf;
             } catch(e) {
                 // The DOMParser will not throw an error if the XML is invalid.
                 // It will return an XML error document, and it will be in
                 // here:
                 // doc.childNodes[1].childNodes[0].nodeValue
                 throw(e)
+            }
+        },
+
+        resolvePath: function (path, referrerLocation) {
+            var pathDirs = path.split("/");
+            var fileName = pathDirs.pop();
+
+            var locationDirs = referrerLocation.split("/");
+            locationDirs.pop();
+
+            for (var i = 0, il = pathDirs.length; i < il; i++) {
+                var spec = pathDirs[i];
+                if (spec === "..") {
+                    locationDirs.pop();
+                } else {
+                    locationDirs.push(spec);
+                }
+            }
+
+            locationDirs.push(fileName);
+            return locationDirs.join("/");
+        },
+
+        findMediaTypeByHref: function (href) {
+            for (key in this.opf.manifest) {
+                var item = this.opf.manifest[key];
+                if (item["href"] === href) {
+                    return item["media-type"];
+                }
+            }
+        },
+
+        convertHttpUrisToDataUris: function () {
+            var self = this;
+            for (var key in this.opf.manifest) {
+                if (this.opf.manifest[key]["media-type"] == "text/css") {
+                    var href = this.opf.manifest[key]["href"];
+                    var file = this.files[href];
+
+                    file = file.replace(/url\((.*?)\)/gi, function (str, url) {
+                        if (/url\(data/i.test(str)) {
+                            // Don't replace data strings
+                            return str;
+                        } else {
+                            var dataHref = self.resolvePath(url, href);
+                            var mediaType = self.findMediaTypeByHref(dataHref);
+                            var encodedData = escape(self.files[dataHref]);
+                            return "url(data:" + mediaType + "," + encodedData + ")";
+                        }
+                    });
+
+                    this.files[href] = file;
+                }
             }
         },
 
@@ -128,6 +181,11 @@
             if (this.mimetype !== "application/epub+zip") {
                 throw new Error("Incorrect mimetype " + this.mimetype);
             }
+        },
+
+        // for data URIs
+        escapeData: function (data) {
+            return escape(data);
         },
 
         xmlDocument: function (xml) {

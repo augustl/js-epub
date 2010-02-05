@@ -104,14 +104,68 @@ TestCase("JsEpubTest", {
             + '  </spine>\n'
             + '</package>\n';
         var e = new JSEpub();
-        var opf = e.readOpf(xml);
-        assertEquals(opf.metadata["dc:language"]._text, "en");
-        assertEquals(opf.metadata["dc:creator"]["opf:role"], "aut");
-        assertEquals(opf.metadata["dc:identifier"]["opf:scheme"], "ISBN");
-        assertEquals(opf.metadata["dc:identifier"]._text, "1-123456-78-9");
-        assertEquals(opf.manifest["book-css"]["href"], "css/book.css");
-        assertEquals(opf.manifest["book-css"]["media-type"], "text/css");
-        assertEquals(opf.manifest["chap1"]["href"], "chap1.html");
-        assertEquals(opf.spine, ["chap1", "chap2"]);
+        e.readOpf(xml);
+        assertEquals(e.opf.metadata["dc:language"]._text, "en");
+        assertEquals(e.opf.metadata["dc:creator"]["opf:role"], "aut");
+        assertEquals(e.opf.metadata["dc:identifier"]["opf:scheme"], "ISBN");
+        assertEquals(e.opf.metadata["dc:identifier"]._text, "1-123456-78-9");
+        assertEquals(e.opf.manifest["book-css"]["href"], "css/book.css");
+        assertEquals(e.opf.manifest["book-css"]["media-type"], "text/css");
+        assertEquals(e.opf.manifest["chap1"]["href"], "chap1.html");
+        assertEquals(e.opf.spine, ["chap1", "chap2"]);
+    },
+
+    "test resolve path": function () {
+        var e = new JSEpub();
+        assertEquals("images/foo.jpg", e.resolvePath("../images/foo.jpg", "css/test.css"));
+        assertEquals("images/foo.jpg", e.resolvePath("../../images/foo.jpg", "css/stuff/test.css"));
+        assertEquals("images/foo.jpg", e.resolvePath("../css/../images/foo.jpg", "css/test.css"));
+        assertEquals("foo.jpg", e.resolvePath("../foo.jpg", "css/foo.css"));
+        assertEquals("css/foo.css", e.resolvePath("foo.css", "css/foo.css"));
+    },
+
+    "test find media type by href": function () {
+        var e = new JSEpub();
+        e.opf = {
+            manifest: {
+                "foo": {"href": "this", "media-type": "that"},
+                "bar": {"href": "the moon", "media-type": "application/cheese"},
+                "baz": {"href": "zap", "media-type": "zup"}
+            }
+        };
+
+        assertEquals("that", e.findMediaTypeByHref("this"));
+        assertEquals("application/cheese", e.findMediaTypeByHref("the moon"));
+        assertEquals(undefined, e.findMediaTypeByHref("waffles"));
+    },
+
+    "test making data URIs in CSS files": function () {
+        var e = new JSEpub();
+        e.opf = {
+            manifest: {
+                "book-css": {"href": "css/book.css", "media-type": "text/css"},
+                "h1-underline": {"href": "images/h1-underline.gif", "media-type": "image/gif"},
+                "foo": {"href": "foo.jpg", "media-type": "image/jpg"}
+            }
+        }
+        e.files = {
+            "css/book.css": ""
+                + "h1 {\n"
+                + "  background: url(../images/h1-underline.gif) repeat-x bottom;\n"
+                + "  background: url(data:donottouch);\n"
+                + "  background: url(../foo.jpg);\n"
+                + "}",
+            "images/h1-underline.gif": "foo, bar! Bits & bytes.",
+            "foo.jpg": "a // jpg // image)"
+        }
+
+        var expected = ""
+            + "h1 {\n"
+            + "  background: url(data:image/gif,foo%2C%20bar%21%20Bits%20%26%20bytes.) repeat-x bottom;\n"
+            + "  background: url(data:donottouch);\n"
+            + "  background: url(data:image/jpg,a%20//%20jpg%20//%20image%29);\n"
+            + "}"
+        e.convertHttpUrisToDataUris();
+        assertEquals(expected, e.files["css/book.css"]);
     }
 });
