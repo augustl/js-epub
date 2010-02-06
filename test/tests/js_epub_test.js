@@ -167,9 +167,11 @@ TestCase("JsEpubTest", {
                 + "  background: url(../images/h1-underline.gif) repeat-x bottom;\n"
                 + "  background: url(data:donottouch);\n"
                 + "  background: url(../foo.jpg);\n"
+                + "  background: url(../notinmanifest.png);\n"
                 + "}",
             "images/h1-underline.gif": "foo, bar! Bits & bytes.",
-            "foo.jpg": "a // jpg // image)"
+            "foo.jpg": "a // jpg // image)",
+            "notinmanifest.png": "they do that from time to time..."
         }
 
         var expected = ""
@@ -177,6 +179,7 @@ TestCase("JsEpubTest", {
             + "  background: url(data:image/gif,foo%2C%20bar%21%20Bits%20%26%20bytes.) repeat-x bottom;\n"
             + "  background: url(data:donottouch);\n"
             + "  background: url(data:image/jpg,a%20//%20jpg%20//%20image%29);\n"
+            + "  background: url(data:image/png,they%20do%20that%20from%20time%20to%20time...);\n"
             + "}"
         e.convertHttpUrisToDataUris();
         assertEquals(expected, e.files["css/book.css"]);

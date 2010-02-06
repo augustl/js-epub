@@ -150,6 +150,10 @@
                     return item["media-type"];
                 }
             }
+
+            // Best guess if it's not in the manifest. (Those bastards.)
+            var match = href.match(/\.(\w+)$/);
+            return match && "image/" + match[1];
         },
 
         // Will modify all HTML and CSS files in place, altering this.files.
@@ -200,8 +204,11 @@
                 if (link.getAttribute("type") === "text/css") {
                     var inlineStyle = document.createElement("style");
                     inlineStyle.setAttribute("type", "text/css");
+                    inlineStyle.setAttribute("data-orig-href", link.getAttribute("href"));
+
                     var css = this.files[this.resolvePath(link.getAttribute("href"), href)];
                     inlineStyle.appendChild(document.createTextNode(css));
+
                     head.replaceChild(inlineStyle, link);
                 }
             }
