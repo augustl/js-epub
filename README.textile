@@ -1,14 +1,20 @@
-h2. Work in progress
-
-Very experimental, can't actually do anything useful yet.
-
 h2. JSEpub
 
-Reads and handles the ebook format EPUB.
+Reads and handles the EPUB e-book format.
 
 <pre><code>var ePubFile = ...; // Use HTML5 files, or download it via XHR.
 var epub = new JSEpub(epubFile);
+epub.process(); // This can take a while. Use HTML5 workers/threads if you can.
+
+// Get the contents of the first spine entry
+var spine = epub.opf.spine[0];
+var href = epub.opf.manifest[spine]["href"];
+var doc = this.epub.files[href];
+// Convert the doc to HTML
+var html = new XMLSerializer().serializeToString(doc);
 </code></pre>
+
+The library is pretty low level, to give you all the flexibility you need when you handle your EPUBs.
 
 h2. Installing and using
 
