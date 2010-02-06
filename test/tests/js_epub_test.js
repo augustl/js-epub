@@ -193,7 +193,10 @@ TestCase("JsEpubTest", {
         };
         e.files = {
             "contents/chap1.html": ""
-                + '<html><body>\n'
+                + '<html><head>\n'
+                + '<link rel="stylesheet" type="text/css" href="../css/book.css"></link>'
+                + '<link rel="stylesheet" type="zombie/woof" href="thing.xpgt"></link>'
+                + '</head><body>\n'
                 + '  <p>Foodi boody.</p>\n'
                 + '  <img alt=""\n'
                 + 'src="resources/test.jpg"\n'
@@ -203,21 +206,21 @@ TestCase("JsEpubTest", {
                 + '  <img alt="" src="data:image/png,bitsandbytes" />\n' 
                 + '</body></html>',
             "contents/resources/foo.png": "I <am> a <img /> image that tries to break escapes%%\\",
-            "contents/resources/test.jpg": "hello"
+            "contents/resources/test.jpg": "hello",
+            "css/book.css": "body { background: red; }"
         };
 
-        var expected = ""
-            + '<html><body>\n'
-            + '  <p>Foodi boody.</p>\n'
-            + '  <img alt=""\n'
-            + 'src="data:img/jpg,hello"\n'
-            + 'title="foo" />\n'
-            + '  <img src="data:anything/really,I%20%3Cam%3E%20a%20%3Cimg%20/%3E%20image%20that%20tries%20to%20break%20escapes%25%25%5C" />\n'
-            + '  <p>Text is so boring. More images please!</p>\n'
-            + '  <img alt="" src="data:image/png,bitsandbytes" />\n' 
-            + '</body></html>';
-
         e.convertHttpUrisToDataUris();
-        assertEquals(expected, e.files["contents/chap1.html"]);
+        var doc = e.files["contents/chap1.html"];
+
+        assertEquals(doc.getElementsByTagName("link").length, 1);
+
+        var style = doc.getElementsByTagName("style")[0];
+        assertEquals(style.textContent, "body { background: red; }");
+
+        var imgs = doc.getElementsByTagName("img");
+        assertEquals("data:img/jpg,hello", imgs[0].getAttribute("src"));
+        assertEquals("data:anything/really,I%20%3Cam%3E%20a%20%3Cimg%20/%3E%20image%20that%20tries%20to%20break%20escapes%25%25%5C", imgs[1].getAttribute("src"));
+        assertEquals("data:image/png,bitsandbytes", imgs[2].getAttribute("src"));
     }
 });

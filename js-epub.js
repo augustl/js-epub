@@ -168,34 +168,52 @@
                             // Don't replace data strings
                             return str;
                         } else {
-                            var dataHref = self.resolvePath(url, href);
-                            var mediaType = self.findMediaTypeByHref(dataHref);
-                            var encodedData = escape(self.files[dataHref]);
-                            return "url(data:" + mediaType + "," + encodedData + ")";
+                            var dataUri = self.getDataUri(url, href);
+                            return "url(" + dataUri + ")";
                         }
                     });
 
                     this.files[href] = file;
                 } else if (mediaType === "application/xhtml+xml") {
-                    var href = this.opf.manifest[key]["href"];
-                    var file = decodeURIComponent(escape(this.files[href]));
-
-                    file = file.replace(/<img([^]*?)src=['"](.*?)['"]([^]*?)\/>/gim, function (imgTag, beforeSrc, url, afterSrc) {
-                        if (/^data/i.test(url)) {
-                            // Don't replace data strings
-                            return imgTag;
-                        } else {
-                            var dataHref = self.resolvePath(url, href);
-                            var mediaType = self.findMediaTypeByHref(dataHref);
-                            var encodedData = escape(self.files[dataHref]);
-                            var src = "data:" + mediaType + "," + encodedData;
-                            return "<img" + beforeSrc + 'src="' + src + '"' + afterSrc + "/>"
-                        }
-                    });
-
-                    this.files[href] = file;
+                    this.convertHttpUrisToDataUrisForHTML(key);
                 }
             }
+        },
+
+        convertHttpUrisToDataUrisForHTML: function (manifestKey) {
+            var href = this.opf.manifest[manifestKey]["href"];
+            var xml = decodeURIComponent(escape(this.files[href]));
+            var doc = this.xmlDocument(xml);
+
+            var images = doc.getElementsByTagName("img");
+            for (var i = 0, il = images.length; i < il; i++) {
+                var image = images[i];
+                var src = image.getAttribute("src");
+                if (/^data/.test(src)) { continue }
+                image.setAttribute("src", this.getDataUri(src, href))
+            }
+
+            var head = doc.getElementsByTagName("head")[0];
+            var links = head.getElementsByTagName("link");
+            for (var i = 0, il = links.length; i < il; i++) {
+                var link = links[0];
+                if (link.getAttribute("type") === "text/css") {
+                    var inlineStyle = document.createElement("style");
+                    inlineStyle.setAttribute("type", "text/css");
+                    var css = this.files[this.resolvePath(link.getAttribute("href"), href)];
+                    inlineStyle.appendChild(document.createTextNode(css));
+                    head.replaceChild(inlineStyle, link);
+                }
+            }
+
+            this.files[href] = doc;
+        },
+
+        getDataUri: function (url, href) {
+            var dataHref = this.resolvePath(url, href);
+            var mediaType = this.findMediaTypeByHref(dataHref);
+            var encodedData = escape(this.files[dataHref]);
+            return "data:" + mediaType + "," + encodedData;
         },
 
         validate: function () {
