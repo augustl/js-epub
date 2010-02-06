@@ -14,7 +14,7 @@
             this.unzipBlob();
             this.readEntries();
             this.readOpf(this.files[this.getOpfPathFromContainer()]);
-            this.convertHttpUrisToDataUris();
+            this.postProcess();
         },
 
         unzipBlob: function () {
@@ -156,36 +156,43 @@
             return match && "image/" + match[1];
         },
 
-        // Will modify all HTML and CSS files in place, altering this.files.
-        // All references to images (resources) will be replaced with data
-        // uris.
-        convertHttpUrisToDataUris: function () {
-            var self = this;
+        // Will modify all HTML and CSS files in place.
+        postProcess: function () {
             for (var key in this.opf.manifest) {
                 var mediaType = this.opf.manifest[key]["media-type"]
+                var href = this.opf.manifest[key]["href"]
+                var result;
+
                 if (mediaType === "text/css") {
-                    var href = this.opf.manifest[key]["href"];
-                    var file = this.files[href];
-
-                    file = file.replace(/url\((.*?)\)/gi, function (str, url) {
-                        if (/^data/i.test(url)) {
-                            // Don't replace data strings
-                            return str;
-                        } else {
-                            var dataUri = self.getDataUri(url, href);
-                            return "url(" + dataUri + ")";
-                        }
-                    });
-
-                    this.files[href] = file;
+                    result = this.postProcessCSS(href);
                 } else if (mediaType === "application/xhtml+xml") {
-                    this.convertHttpUrisToDataUrisForHTML(key);
+                    result = this.postProcessHTML(href);
+                }
+
+                if (result !== undefined) {
+                    this.files[href] = result;
                 }
             }
         },
 
-        convertHttpUrisToDataUrisForHTML: function (manifestKey) {
-            var href = this.opf.manifest[manifestKey]["href"];
+        postProcessCSS: function (href) {
+            var file = this.files[href];
+            var self = this;
+
+            file = file.replace(/url\((.*?)\)/gi, function (str, url) {
+                if (/^data/i.test(url)) {
+                    // Don't replace data strings
+                    return str;
+                } else {
+                    var dataUri = self.getDataUri(url, href);
+                    return "url(" + dataUri + ")";
+                }
+            });
+
+            return file;
+        },
+
+        postProcessHTML: function (href) {
             var xml = decodeURIComponent(escape(this.files[href]));
             var doc = this.xmlDocument(xml);
 
@@ -213,7 +220,7 @@
                 }
             }
 
-            this.files[href] = doc;
+            return doc;
         },
 
         getDataUri: function (url, href) {

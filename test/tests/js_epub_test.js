@@ -181,7 +181,7 @@ TestCase("JsEpubTest", {
             + "  background: url(data:image/jpg,a%20//%20jpg%20//%20image%29);\n"
             + "  background: url(data:image/png,they%20do%20that%20from%20time%20to%20time...);\n"
             + "}"
-        e.convertHttpUrisToDataUris();
+        e.postProcess();
         assertEquals(expected, e.files["css/book.css"]);
     },
 
@@ -213,7 +213,7 @@ TestCase("JsEpubTest", {
             "css/book.css": "body { background: red; }"
         };
 
-        e.convertHttpUrisToDataUris();
+        e.postProcess();
         var doc = e.files["contents/chap1.html"];
 
         assertEquals(doc.getElementsByTagName("link").length, 1);
