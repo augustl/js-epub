@@ -25,5 +25,5 @@ JSEpub has the following dependencies:
 * "JSInflate":http://github.com/augustl/js-inflate. Used to decompress the
   compressed files in the Zip archive.
 
-Simply include these javascripts on your page.
+Include these scripts on your page before you include js-epub. They don't require any configuration or initialization.
 
