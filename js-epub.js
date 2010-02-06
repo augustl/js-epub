@@ -13,7 +13,8 @@
         process: function () {
             this.unzipBlob();
             this.readEntries();
-            this.readOpf(this.files[this.getOpfPathFromContainer()]);
+            this.opfPath = this.getOpfPathFromContainer();
+            this.readOpf(this.files[this.opfPath]);
             this.postProcess();
         },
 
@@ -64,63 +65,53 @@
         readOpf: function (xml) {
             var doc = this.xmlDocument(xml);
             
-            try {
-                var opf = {
-                    metadata: {},
-                    manifest: {},
-                    spine: []
-                };
+            var opf = {
+                metadata: {},
+                manifest: {},
+                spine: []
+            };
 
-                var metadataNodes = doc
-                    .getElementsByTagName("metadata")[0]
-                    .childNodes;
+            var metadataNodes = doc
+                .getElementsByTagName("metadata")[0]
+                .childNodes;
 
-                for (var i = 0, il = metadataNodes.length; i < il; i++) {
-                    var node = metadataNodes[i];
-                    // Skip text nodes (whitespace)
-                    if (node.nodeType === 3) { continue }
+            for (var i = 0, il = metadataNodes.length; i < il; i++) {
+                var node = metadataNodes[i];
+                // Skip text nodes (whitespace)
+                if (node.nodeType === 3) { continue }
 
-                    var attrs = {};
-                    for (var i2 = 0, il2 = node.attributes.length; i2 < il2; i2++) {
-                        var attr = node.attributes[i2];
-                        attrs[attr.name] = attr.value;
-                    }
-                    attrs._text = node.textContent;
-                    opf.metadata[node.nodeName] = attrs;
+                var attrs = {};
+                for (var i2 = 0, il2 = node.attributes.length; i2 < il2; i2++) {
+                    var attr = node.attributes[i2];
+                    attrs[attr.name] = attr.value;
                 }
-
-                var manifestEntries = doc
-                    .getElementsByTagName("manifest")[0]
-                    .getElementsByTagName("item");
-
-                for (var i = 0, il = manifestEntries.length; i < il; i++) {
-                    var node = manifestEntries[i];
-                    var attrs = {};
-                    for (var i2 = 0, il2 = node.attributes.length; i2 < il2; i2++) {
-                        var attr = node.attributes[i2];
-                        if (attr.name === "id") { continue }
-                        attrs[attr.name] = attr.value;
-                    }
-                    opf.manifest[node.getAttribute("id")] = attrs;
-                }
-
-                var spineEntries = doc
-                    .getElementsByTagName("spine")[0]
-                    .getElementsByTagName("itemref");
-
-                for (var i = 0, il = spineEntries.length; i < il; i++) {
-                    var node = spineEntries[i];
-                    opf.spine.push(node.getAttribute("idref"));
-                }
-
-                this.opf = opf;
-            } catch(e) {
-                // The DOMParser will not throw an error if the XML is invalid.
-                // It will return an XML error document, and it will be in
-                // here:
-                // doc.childNodes[1].childNodes[0].nodeValue
-                throw(e)
+                attrs._text = node.textContent;
+                opf.metadata[node.nodeName] = attrs;
             }
+
+            var manifestEntries = doc
+                .getElementsByTagName("manifest")[0]
+                .getElementsByTagName("item");
+
+            for (var i = 0, il = manifestEntries.length; i < il; i++) {
+                var node = manifestEntries[i];
+
+                opf.manifest[node.getAttribute("id")] = {
+                    "href": this.resolvePath(node.getAttribute("href"), this.opfPath),
+                    "media-type": node.getAttribute("media-type")
+                }
+            }
+
+            var spineEntries = doc
+                .getElementsByTagName("spine")[0]
+                .getElementsByTagName("itemref");
+
+            for (var i = 0, il = spineEntries.length; i < il; i++) {
+                var node = spineEntries[i];
+                opf.spine.push(node.getAttribute("idref"));
+            }
+
+            this.opf = opf;
         },
 
         resolvePath: function (path, referrerLocation) {
@@ -250,7 +241,13 @@
         },
 
         xmlDocument: function (xml) {
-            return new DOMParser().parseFromString(xml, "text/xml");
+            var doc = new DOMParser().parseFromString(xml, "text/xml");
+
+            if (doc.childNodes[1] && doc.childNodes[1].nodeName === "parsererror") {
+                throw doc.childNodes[1].childNodes[0].nodeValue;
+            }
+
+            return doc;
         }
     }
 }(this));

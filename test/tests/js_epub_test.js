@@ -117,6 +117,7 @@ TestCase("JsEpubTest", {
             + '  </spine>\n'
             + '</package>\n';
         var e = new JSEpub();
+        e.opfPath = "content.opf";
         e.readOpf(xml);
         assertEquals(e.opf.metadata["dc:language"]._text, "en");
         assertEquals(e.opf.metadata["dc:creator"]["opf:role"], "aut");
@@ -126,6 +127,28 @@ TestCase("JsEpubTest", {
         assertEquals(e.opf.manifest["book-css"]["media-type"], "text/css");
         assertEquals(e.opf.manifest["chap1"]["href"], "chap1.html");
         assertEquals(e.opf.spine, ["chap1", "chap2"]);
+    },
+
+    "test opf paths are relative to opf location": function () {
+        var xml = ""
+            + '<?xml version="1.0" encoding="UTF-8"?>\n'
+            + '<package>\n'
+            + '  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">\n'
+            + '    <dc:title>My Book</dc:title>\n'
+            + '  </metadata>\n'
+            + '  <manifest>\n'
+            + '    <item id="chap1" href="chap1.html" media-type="application/xhtml+xml"/>\n'
+            + '    <item id="chap2" href="chap2.html" media-type="application/xhtml+xml"/>\n'
+            + '  </manifest>\n'
+            + '  <spine toc="ncx">\n'
+            + '    <itemref idref="chap1"/>\n'
+            + '    <itemref idref="chap2"/>\n'
+            + '  </spine>\n'
+            + '</package>\n';
+        var e = new JSEpub();
+        e.opfPath = "OPS/ind.opf";
+        e.readOpf(xml);
+        assertEquals(e.opf.manifest["chap1"]["href"], "OPS/chap1.html");
     },
 
     "test resolve path": function () {
