@@ -178,7 +178,7 @@
                     this.files[href] = file;
                 } else if (mediaType === "application/xhtml+xml") {
                     var href = this.opf.manifest[key]["href"];
-                    var file = this.files[href];
+                    var file = decodeURIComponent(escape(this.files[href]));
 
                     file = file.replace(/<img([^]*?)src=['"](.*?)['"]([^]*?)\/>/gim, function (imgTag, beforeSrc, url, afterSrc) {
                         if (/^data/i.test(url)) {
