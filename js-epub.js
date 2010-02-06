@@ -180,7 +180,7 @@
                     var href = this.opf.manifest[key]["href"];
                     var file = this.files[href];
 
-                    file = file.replace(/<img(.*?)src=['"](.*?)['"](.*?)\/>/gi, function (imgTag, beforeSrc, url, afterSrc) {
+                    file = file.replace(/<img([^]*?)src=['"](.*?)['"]([^]*?)\/>/gim, function (imgTag, beforeSrc, url, afterSrc) {
                         if (/^data/i.test(url)) {
                             // Don't replace data strings
                             return imgTag;

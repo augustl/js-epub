@@ -195,7 +195,9 @@ TestCase("JsEpubTest", {
             "contents/chap1.html": ""
                 + '<html><body>\n'
                 + '  <p>Foodi boody.</p>\n'
-                + '  <img alt="" src="resources/test.jpg" />\n'
+                + '  <img alt=""\n'
+                + 'src="resources/test.jpg"\n'
+                + 'title="foo" />\n'
                 + '  <img src="resources/foo.png" />\n'
                 + '  <p>Text is so boring. More images please!</p>\n'
                 + '  <img alt="" src="data:image/png,bitsandbytes" />\n' 
@@ -207,11 +209,14 @@ TestCase("JsEpubTest", {
         var expected = ""
             + '<html><body>\n'
             + '  <p>Foodi boody.</p>\n'
-            + '  <img alt="" src="data:img/jpg,hello" />\n'
+            + '  <img alt=""\n'
+            + 'src="data:img/jpg,hello"\n'
+            + 'title="foo" />\n'
             + '  <img src="data:anything/really,I%20%3Cam%3E%20a%20%3Cimg%20/%3E%20image%20that%20tries%20to%20break%20escapes%25%25%5C" />\n'
             + '  <p>Text is so boring. More images please!</p>\n'
             + '  <img alt="" src="data:image/png,bitsandbytes" />\n' 
             + '</body></html>';
+
         e.convertHttpUrisToDataUris();
         assertEquals(expected, e.files["contents/chap1.html"]);
     }
