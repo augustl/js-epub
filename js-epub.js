@@ -10,6 +10,13 @@
         unzipperConstructor: JSUnzip,
         inflater: JSInflate,
 
+        process: function () {
+            this.unzipBlob();
+            this.readEntries();
+            this.readOpf(this.files[this.getOpfPathFromContainer()]);
+            this.convertHttpUrisToDataUris();
+        },
+
         unzipBlob: function () {
             var unzipper = new this.unzipperConstructor(this.blob);
             if (!unzipper.isZipFile()) {
