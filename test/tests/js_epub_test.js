@@ -28,8 +28,9 @@ TestCase("JsEpubTest", {
 	var e = new JSEpub();
 	var timesInflated = 0;
 
-	JSEpub.prototype.inflater = {inflate: function () {
+	JSEpub.prototype.inflater = {inflate: function (data) {
 	    timesInflated++;
+            return data + " for real";
 	}};
 	// Mocked JSUnzip output.
 	e.entries = [
@@ -52,13 +53,25 @@ TestCase("JsEpubTest", {
 		fileName: "content/a_page.html",
 		data: "",
 		compressionMethod: 8
-	    }
+	    },
+            {
+                fileName: "content/b_page.html",
+                data: "here I am",
+                compressionMethod: 0
+            },
+            {
+                fileName: "content/c_page.html",
+                data: "compressed",
+                compressionMethod: 8
+            }
 	]
 
 	e.readEntries();
 
-	assertEquals(3, timesInflated);
+	assertEquals(4, timesInflated);
 	assertEquals("application/epub+zip", e.mimetype);
+        assertEquals(e.files["content/b_page.html"], "here I am");
+        assertEquals(e.files["content/c_page.html"], "compressed for real");
     },
 
     "test invalid compression method": function () {

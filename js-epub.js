@@ -42,7 +42,7 @@
                 } else if (entry.fileName === "mimetype") {
                     this.mimetype = data;
                 } else {
-                    this.files[entry.fileName] = entry.data;
+                    this.files[entry.fileName] = data;
                 }
             }
         },
