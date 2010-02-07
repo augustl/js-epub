@@ -8,8 +8,10 @@ var epub = new JSEpub(epubFile);
 var showFirstPage = function () {
     // The spine lists all pages in correct order
     var spine = epub.opf.spine[0];
+
     // The manifest contains the href of the file
     var href = epub.opf.manifest[spine]["href"];
+
     // All the files are stored in here, indexed by href
     var doc = epub.files[href];
 
@@ -20,6 +22,11 @@ var showFirstPage = function () {
     // Use html to your hearts content!
 }
 
+// Each time something happens in the processing, the callbakc is called. The
+// step is a number, representing the actual step that was performed. You
+// can use this to render status messages to the user as you process the file.
+// The processor will also insert a tiny delay between each operation, so that
+// you don't get the browser slow script warnings.
 epub.processInSteps(function (step, extras) {
     var msg;
 
