@@ -76,17 +76,18 @@ TestCase("JsEpubTest", {
 	var expectedBlob = "arf";
 	var actualBlob;
 	var entries = "any object here";
-	JSEpub.prototype.unzipperConstructor = function (blob) {
+
+	var e = new JSEpub(expectedBlob);
+	e.unzipperConstructor = function (blob) {
 	    actualBlob = blob;
 	}
-	JSEpub.prototype.unzipperConstructor.prototype = {
+	e.unzipperConstructor.prototype = {
 	    isZipFile: function () { return true },
 	    readEntries: function () {},
 	    entries: entries
 	}
 
-	var e = new JSEpub(expectedBlob);
-	e.unzipBlob();
+        e.unzipBlob();
 	assertEquals(expectedBlob, actualBlob);
 	assertEquals(entries, e.compressedFiles);
     },
@@ -95,7 +96,7 @@ TestCase("JsEpubTest", {
 	var e = new JSEpub();
 	var timesInflated = 0;
 
-	JSEpub.prototype.inflater = {inflate: function (data) {
+	e.inflater = {inflate: function (data) {
 	    timesInflated++;
             return data + " for real";
 	}};
