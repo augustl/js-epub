@@ -19,7 +19,7 @@ var showFirstPage = function () {
     // work with a string version of the page contents.
     var html = new XMLSerializer().serializeToString(doc);
 
-    // Use html to your hearts content!
+    // Use "html" to your hearts content!
 }
 
 // Each time something happens in the processing, the callbakc is called. The
