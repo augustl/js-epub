@@ -10,12 +10,23 @@
         unzipperConstructor: JSUnzip,
         inflater: JSInflate,
 
-        process: function () {
+        // None-blocking processing of the EPUB. The notifier callback will
+        // get called with a number and a optional info parameter on various
+        // steps of the processing:
+        //
+        //  1: Unzipping
+        //  2: Uncompressing file. File name passed as 2nd argument.
+        //  3: Reading OPF
+        //  4: Post processing
+        //  5: Finished!
+        processInSteps: function (notifier) {
+            notifier(1);
             this.unzipBlob();
-            this.readEntries();
-            this.opfPath = this.getOpfPathFromContainer();
-            this.readOpf(this.files[this.opfPath]);
-            this.postProcess();
+
+            this.files = {};
+            this.uncompressNextCompressedFile(notifier);
+            // When all files are decompressed, uncompressNextCompressedFile
+            // will continue with the next step.
         },
 
         unzipBlob: function () {
@@ -25,33 +36,65 @@
             }
 
             unzipper.readEntries();
-            this.entries = unzipper.entries;
+            this.compressedFiles = unzipper.entries;
         },
 
-	readEntries: function () {
+        uncompressNextCompressedFile: function (notifier) {
+            var self = this;
+            var compressedFile = this.compressedFiles.shift();
+            if (compressedFile) {
+                notifier(2, compressedFile.fileName);
+                this.uncompressFile(compressedFile);
+                this.withTimeout(this.uncompressNextCompressedFile, notifier);
+            } else {
+                this.didUncompressAllFiles(notifier);
+            }
+        },
+        
+        // For mockability
+        withTimeout: function (func, notifier) {
+            var self = this;
+            setTimeout(function () {
+                func.call(self, notifier);
+            }, 30);
+        },
+
+        didUncompressAllFiles: function (notifier) {
+            notifier(3);
+            this.opfPath = this.getOpfPathFromContainer();
+            this.readOpf(this.files[this.opfPath]);
+
+            notifier(4);
+            this.postProcess();
+            notifier(5);
+        },
+
+	uncompressFiles: function () {
             this.files = {};
 
             for (var i = 0, il = this.entries.length; i < il; i++) {
-                var entry = this.entries[i];
-                var data;
+                this.uncompressFile(this.entries[i]);
+            }
+        },
 
-                if (entry.compressionMethod === 0) {
-                    data = entry.data;
-                } else if (entry.compressionMethod === 8) {
-                    data = this.inflater.inflate(entry.data);
-                } else {
-                    throw new Error("Unknown compression method "
-                                    + entry.compressionMethod 
-                                    + " encountered.");
-                }
+        uncompressFile: function (compressedFile) {
+            var data;
+            if (compressedFile.compressionMethod === 0) {
+                data = compressedFile.data;
+            } else if (compressedFile.compressionMethod === 8) {
+                data = this.inflater.inflate(compressedFile.data);
+            } else {
+                throw new Error("Unknown compression method "
+                                + compressedFile.compressionMethod 
+                                + " encountered.");
+            }
 
-                if (entry.fileName === "META-INF/container.xml") {
-                    this.container = data;
-                } else if (entry.fileName === "mimetype") {
-                    this.mimetype = data;
-                } else {
-                    this.files[entry.fileName] = data;
-                }
+            if (compressedFile.fileName === "META-INF/container.xml") {
+                this.container = data;
+            } else if (compressedFile.fileName === "mimetype") {
+                this.mimetype = data;
+            } else {
+                this.files[compressedFile.fileName] = data;
             }
         },
 
