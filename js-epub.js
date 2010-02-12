@@ -32,7 +32,7 @@
         unzipBlob: function () {
             var unzipper = new this.unzipperConstructor(this.blob);
             if (!unzipper.isZipFile()) {
-                throw new Error("Provided file was not a zip file.");
+                throw new Error("Invalid EPUB archive format.");
             }
 
             unzipper.readEntries();
