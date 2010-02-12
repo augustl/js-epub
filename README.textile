@@ -2,6 +2,12 @@ h2. JSEpub
 
 Reads and handles the EPUB e-book format.
 
+h2. Download
+
+"http://github.com/downloads/augustl/js-epub/js-epub.min.js":http://github.com/downloads/augustl/js-epub/js-epub.min.js
+
+h2. Usage
+
 <pre><code>var epubFile = ...; // Use HTML5 files or download via XHR.
 var epub = new JSEpub(epubFile);
 
