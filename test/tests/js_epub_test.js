@@ -8,53 +8,56 @@ TestCase("JsEpubTest", {
     "test integration of processInSteps": function () {
         var e = new JSEpub();
         e.withTimeout = function (cb, n) { cb.call(this, n) }
-        e.unzipperConstructor = function () {};
-        e.unzipperConstructor.prototype = {
-            isZipFile: function () { return true },
-            readEntries: function () {
-                this.entries = [
-                    {
-                        fileName: "mimetype",
-                        data: "application/epub+zip",
-                        compressionMethod: 0
-                    },
-                    {
-                        fileName: "META-INF/container.xml",
-                        data: ""
-                            + '<?xml version="1.0" encoding="UTF-8"?>'
-                            + '<container version="1.0">'
-                            + '  <rootfiles>'
-                            + '    <rootfile full-path="foo.opf" />'
-                            + '  </rootfiles>'
-                            + '</container>',
-                        compressionMethod: 8
-                    },
-                    {
-                        fileName: "foo.opf",
-                        data: ""
-                            + '<?xml version="1.0" encoding="UTF-8"?>\n'
-                            + '<package>\n'
-                            + '  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">\n'
-                            + '    <dc:title>My Book</dc:title>\n'
-                            + '  </metadata>\n'
-                            + '  <manifest>\n'
-                            + '    <item id="chap1" href="chap1.html" media-type="application/xhtml+xml"/>\n'
-                            + '  </manifest>\n'
-                            + '  <spine toc="ncx">\n'
-                            + '    <itemref idref="chap1"/>\n'
-                            + '  </spine>\n'
-                            + '</package>\n',
-                        compressionMethod: 8
-                    },
-                    {
-                        fileName: "chap1",
-                        data: "<html><head></head></html>",
-                        compressionMethod: 8
-                    }
-                ]
+        e.unzipper = function () {
+            return {
+                isZipFile: function () { return true },
+                readEntries: function () {
+                    this.entries = [
+                        {
+                            fileName: "mimetype",
+                            data: "application/epub+zip",
+                            compressionMethod: 0
+                        },
+                        {
+                            fileName: "META-INF/container.xml",
+                            data: ""
+                                + '<?xml version="1.0" encoding="UTF-8"?>'
+                                + '<container version="1.0">'
+                                + '  <rootfiles>'
+                                + '    <rootfile full-path="foo.opf" />'
+                                + '  </rootfiles>'
+                                + '</container>',
+                            compressionMethod: 8
+                        },
+                        {
+                            fileName: "foo.opf",
+                            data: ""
+                                + '<?xml version="1.0" encoding="UTF-8"?>\n'
+                                + '<package>\n'
+                                + '  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">\n'
+                                + '    <dc:title>My Book</dc:title>\n'
+                                + '  </metadata>\n'
+                                + '  <manifest>\n'
+                                + '    <item id="chap1" href="chap1.html" media-type="application/xhtml+xml"/>\n'
+                                + '  </manifest>\n'
+                                + '  <spine toc="ncx">\n'
+                                + '    <itemref idref="chap1"/>\n'
+                                + '  </spine>\n'
+                                + '</package>\n',
+                            compressionMethod: 8
+                        },
+                        {
+                            fileName: "chap1",
+                            data: "<html><head></head></html>",
+                            compressionMethod: 8
+                        }
+                    ]
+                }
+                
             }
-        };
-        e.inflater = {inflate: function (d) { return d }};
+        }
+
+        e.inflate = function (d) { return d };
         // It is tested elsewhere.
         e.postProcess = function () {}
 
@@ -78,14 +81,14 @@ TestCase("JsEpubTest", {
 	var entries = "any object here";
 
 	var e = new JSEpub(expectedBlob);
-	e.unzipperConstructor = function (blob) {
-	    actualBlob = blob;
-	}
-	e.unzipperConstructor.prototype = {
-	    isZipFile: function () { return true },
-	    readEntries: function () {},
-	    entries: entries
-	}
+        e.unzipper = function (blob) {
+            actualBlob = blob;
+            return {
+	        isZipFile: function () { return true },
+	        readEntries: function () {},
+	        entries: entries
+            }
+        }
 
         e.unzipBlob();
 	assertEquals(expectedBlob, actualBlob);
@@ -96,10 +99,11 @@ TestCase("JsEpubTest", {
 	var e = new JSEpub();
 	var timesInflated = 0;
 
-	e.inflater = {inflate: function (data) {
+        e.inflate = function (data) {
 	    timesInflated++;
             return data + " for real";
-	}};
+        }
+
 	// Mocked JSUnzip output.
 	e.entries = [
 	    {

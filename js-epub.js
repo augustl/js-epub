@@ -7,8 +7,12 @@
 
     JSEpub.prototype = {
         // For mockability
-        unzipperConstructor: JSUnzip,
-        inflater: JSInflate,
+        unzipper: function (blob) {
+            new JSUnzip(blob);
+        },
+        inflate: function(blob) {
+            JSInflate.inflate(blob);
+        },
 
         // None-blocking processing of the EPUB. The notifier callback will
         // get called with a number and a optional info parameter on various
@@ -30,7 +34,7 @@
         },
 
         unzipBlob: function () {
-            var unzipper = new this.unzipperConstructor(this.blob);
+            var unzipper = new this.unzipper(this.blob);
             if (!unzipper.isZipFile()) {
                 throw new Error("Invalid EPUB archive format.");
             }
@@ -82,7 +86,7 @@
             if (compressedFile.compressionMethod === 0) {
                 data = compressedFile.data;
             } else if (compressedFile.compressionMethod === 8) {
-                data = this.inflater.inflate(compressedFile.data);
+                data = this.inflate(compressedFile.data);
             } else {
                 throw new Error("Unknown compression method "
                                 + compressedFile.compressionMethod 
