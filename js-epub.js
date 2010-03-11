@@ -8,10 +8,10 @@
     JSEpub.prototype = {
         // For mockability
         unzipper: function (blob) {
-            new JSUnzip(blob);
+            return new JSUnzip(blob);
         },
         inflate: function(blob) {
-            JSInflate.inflate(blob);
+            return JSInflate.inflate(blob);
         },
 
         // None-blocking processing of the EPUB. The notifier callback will
