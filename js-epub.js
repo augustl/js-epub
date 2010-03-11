@@ -23,9 +23,12 @@
         //  3: Reading OPF
         //  4: Post processing
         //  5: Finished!
+        //
+        // Error codes:
+        //  -1: File is not a proper Zip file.
         processInSteps: function (notifier) {
             notifier(1);
-            this.unzipBlob();
+            this.unzipBlob(notifier);
 
             this.files = {};
             this.uncompressNextCompressedFile(notifier);
@@ -33,10 +36,11 @@
             // will continue with the next step.
         },
 
-        unzipBlob: function () {
-            var unzipper = new this.unzipper(this.blob);
+        unzipBlob: function (notifier) {
+            var unzipper = this.unzipper(this.blob);
             if (!unzipper.isZipFile()) {
-                throw new Error("Invalid EPUB archive format.");
+                notifier(-1);
+                return;
             }
 
             unzipper.readEntries();

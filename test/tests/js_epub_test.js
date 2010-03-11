@@ -95,6 +95,23 @@ TestCase("JsEpubTest", {
 	assertEquals(entries, e.compressedFiles);
     },
 
+    "test unzipping blob failing": function () {
+        var e = new JSEpub("...");
+        e.unzipper = function () {
+            return {
+                isZipFile: function () { return false }
+            }
+        }
+        
+        var calls = [];
+        var notifier = function () {
+            calls.push(arguments);
+        }
+
+        e.unzipBlob(notifier);
+        assertEquals([[-1]], calls);
+    },
+
     "test uncompress": function () {
 	var e = new JSEpub();
 	var timesInflated = 0;
