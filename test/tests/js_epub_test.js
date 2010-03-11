@@ -108,7 +108,7 @@ TestCase("JsEpubTest", {
             calls.push(arguments);
         }
 
-        e.unzipBlob(notifier);
+        assertFalse(e.unzipBlob(notifier));
         assertEquals([[-1]], calls);
     },
 

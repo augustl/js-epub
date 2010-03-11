@@ -28,7 +28,9 @@
         //  -1: File is not a proper Zip file.
         processInSteps: function (notifier) {
             notifier(1);
-            this.unzipBlob(notifier);
+            if (this.unzipBlob(notifier) === false) {
+                return;
+            }
 
             this.files = {};
             this.uncompressNextCompressedFile(notifier);
@@ -40,7 +42,7 @@
             var unzipper = this.unzipper(this.blob);
             if (!unzipper.isZipFile()) {
                 notifier(-1);
-                return;
+                return false;
             }
 
             unzipper.readEntries();
