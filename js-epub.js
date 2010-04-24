@@ -79,14 +79,6 @@
             notifier(5);
         },
 
-	uncompressFiles: function () {
-            this.files = {};
-
-            for (var i = 0, il = this.entries.length; i < il; i++) {
-                this.uncompressFile(this.entries[i]);
-            }
-        },
-
         uncompressFile: function (compressedFile) {
             var data;
             if (compressedFile.compressionMethod === 0) {
