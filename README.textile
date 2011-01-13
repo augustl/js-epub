@@ -6,6 +6,24 @@ h2. Download
 
 "http://github.com/downloads/augustl/js-epub/js-epub.min.js":http://github.com/downloads/augustl/js-epub/js-epub.min.js
 
+h2. A note on XMLHttpRequest
+
+There have been numerous reports of problems with JSEpub when XMLHttpRequst/XHR/AJAX have been used to download EPUBs.
+
+The problem is encoding related. To circumvent it, Base64 encode the epub on the server, and Base64 decode it again on the client.
+
+<pre><code>// Server side, here with Ruby. The approach to any language.
+def serve_epub
+  @response.body << Base64.encode64(File.read("/path/to/my.epub"))
+end
+
+// Client
+jQuery.get("/epubs/dynamic/my.epub", function (data) {
+    var decodedData = someBase64DecoderHere(data); // Find a base64 decoder on google or whatever. 
+    new JSEpub(decodedData);
+});
+</code></pre>
+
 h2. Usage
 
 <pre><code>var epubFile = ...; // Use HTML5 files or download via XHR.
@@ -64,4 +82,3 @@ JSEpub has the following dependencies:
   compressed files in the Zip archive.
 
 Include these scripts on your page before you include js-epub. They don't require any configuration or initialization.
-
