@@ -10,14 +10,14 @@ h2. A note on XMLHttpRequest
 
 There have been numerous reports of problems with JSEpub when XMLHttpRequst/XHR/AJAX have been used to download EPUBs.
 
-The problem is encoding related. To circumvent it, Base64 encode the epub on the server, and Base64 decode it again on the client.
+The problem is encoding related. The easiest way to get around it, given browsers are harsh environments, is to Base64 encode the epub on the server, and Base64 decode it again on the client.
 
-<pre><code>// Server side, here with Ruby. The approach to any language.
+<pre><code>// Server side, here with Ruby. The approach applies to any language.
 def serve_epub
   @response.body << Base64.encode64(File.read("/path/to/my.epub"))
 end
 
-// Client
+// Client side
 jQuery.get("/epubs/dynamic/my.epub", function (data) {
     var decodedData = someBase64DecoderHere(data); // Find a base64 decoder on google or whatever. 
     new JSEpub(decodedData);
