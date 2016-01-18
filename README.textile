@@ -3,3 +3,5 @@ h2. JSEpub
 This project is deprecated.
 
 A much better alternative now exists: https://github.com/futurepress/epub.js/
+
+The old code is here: https://github.com/augustl/js-epub/tree/e13c447b331b091812a115ae54b446de5463e34a
